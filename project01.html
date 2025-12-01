@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Lion's Challenge: RPS</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configure Tailwind for custom colors and fonts -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'regal-brown': '#3e2723', // Deep Brown/Lion's Mane color
+                        'golden-accent': '#ffb300', // Gold/Amber accent
+                        'deep-red': '#b71c1c',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom styles for a more dramatic, lion-themed look */
+        body {
+            background: linear-gradient(135deg, #3e2723 0%, #1e110e 100%);
+            min-height: 100vh;
+        }
+        .lion-button {
+            transition: all 0.15s ease-in-out;
+            box-shadow: 0 4px #b38800, 0 8px 15px rgba(0, 0, 0, 0.4);
+        }
+        .lion-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px #b38800, 0 10px 20px rgba(0, 0, 0, 0.5);
+        }
+        .lion-button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px #b38800, 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        /* Style for the emoji/choice display */
+        .choice-display {
+            font-size: 4rem; /* Large emoji size */
+            line-height: 1;
+        }
+    </style>
+</head>
+
+<body class="font-sans flex items-center justify-center p-4">
+
+    <!-- Game Container (The Royal Arena) -->
+    <div class="w-full max-w-lg bg-regal-brown p-8 rounded-xl shadow-2xl border-4 border-golden-accent/70 text-white">
+
+        <!-- Title for Nishant Bhai -->
+        <header class="text-center mb-10">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-golden-accent mb-2 tracking-wider">
+                🦁 The Lion's Challenge 🦁
+            </h1>
+            <p class="text-amber-200/80 text-xl font-semibold">
+                Nishant Bhai, Choose Your Weapon!
+            </p>
+        </header>
+        
+        <!-- Scoreboard -->
+        <div class="flex justify-around items-center text-center text-lg font-semibold mb-6 p-3 bg-regal-brown/50 rounded-lg border border-golden-accent/30">
+            <div class="text-green-400">
+                <span class="block text-4xl font-extrabold" id="user-score">0</span>
+                <span class="block uppercase text-sm">You (Wins)</span>
+            </div>
+            <div class="text-amber-300 border-x border-golden-accent/30 px-6">
+                <span class="block text-4xl font-extrabold" id="draw-score">0</span>
+                <span class="block uppercase text-sm">Draws</span>
+            </div>
+            <div class="text-deep-red">
+                <span class="block text-4xl font-extrabold" id="computer-score">0</span>
+                <span class="block uppercase text-sm">Computer (Losses)</span>
+            </div>
+        </div>
+
+        <!-- Current Choices and Result Display -->
+        <div class="bg-regal-brown/50 p-6 rounded-lg mb-8 border border-golden-accent/30">
+            <!-- Choices Display -->
+            <div class="flex justify-around items-center text-center mb-6">
+                <div>
+                    <p class="text-lg font-medium text-amber-100 mb-2">You</p>
+                    <div id="user-choice-display" class="choice-display">
+                        ❓
+                    </div>
+                </div>
+                <div class="text-4xl text-golden-accent font-bold mx-4">VS</div>
+                <div>
+                    <p class="text-lg font-medium text-amber-100 mb-2">The Computer</p>
+                    <div id="computer-choice-display" class="choice-display">
+                        ❓
+                    </div>
+                </div>
+            </div>
+
+            <!-- Result Message -->
+            <div id="result-message" class="text-center h-16 flex items-center justify-center">
+                <p class="text-2xl font-bold text-amber-300">
+                    Make your first move!
+                </p>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="grid grid-cols-3 gap-4">
+            <!-- Stone Button -->
+            <button
+                onclick="playGame('stone')"
+                class="lion-button bg-golden-accent text-regal-brown p-4 rounded-xl font-bold text-xl uppercase hover:bg-amber-400 focus:ring-4 focus:ring-amber-500/50"
+            >
+                <span class="text-3xl block mb-1">🗿</span>
+                Stone
+            </button>
+
+            <!-- Paper Button -->
+            <button
+                onclick="playGame('paper')"
+                class="lion-button bg-golden-accent text-regal-brown p-4 rounded-xl font-bold text-xl uppercase hover:bg-amber-400 focus:ring-4 focus:ring-amber-500/50"
+            >
+                <span class="text-3xl block mb-1">📜</span>
+                Paper
+            </button>
+
+            <!-- Scissor Button -->
+            <button
+                onclick="playGame('scissor')"
+                class="lion-button bg-golden-accent text-regal-brown p-4 rounded-xl font-bold text-xl uppercase hover:bg-amber-400 focus:ring-4 focus:ring-amber-500/50"
+            >
+                <span class="text-3xl block mb-1">✂️</span>
+                Scissor
+            </button>
+        </div>
+        
+        <!-- Reset Button -->
+        <div class="mt-6">
+            <button
+                onclick="resetGame()"
+                id="reset-button"
+                class="w-full lion-button bg-deep-red text-white p-3 rounded-xl font-bold text-lg uppercase hover:bg-red-700 focus:ring-4 focus:ring-red-500/50"
+            >
+                Reset Score
+            </button>
+        </div>
+    </div>
+
+    <!-- JavaScript Game Logic -->
+    <script>
+        // Mapping text choices to emojis for the UI
+        const CHOICES_MAP = {
+            stone: '🗿',
+            paper: '📜',
+            scissor: '✂️'
+        };
+
+        const choices = ["stone", "paper", "scissor"];
+        const userDisplay = document.getElementById('user-choice-display');
+        const computerDisplay = document.getElementById('computer-choice-display');
+        const resultMessage = document.getElementById('result-message');
+        
+        // New state variables for scoring
+        let score = { win: 0, lose: 0, draw: 0 };
+        const userScoreDisplay = document.getElementById('user-score');
+        const drawScoreDisplay = document.getElementById('draw-score');
+        const computerScoreDisplay = document.getElementById('computer-score');
+        
+        /**
+         * Function to update the score display in the UI.
+         */
+        function updateScoreDisplay() {
+            userScoreDisplay.textContent = score.win;
+            drawScoreDisplay.textContent = score.draw;
+            computerScoreDisplay.textContent = score.lose;
+        }
+
+        /**
+         * Resets the game score and the display.
+         */
+        function resetGame() {
+            score.win = 0;
+            score.lose = 0;
+            score.draw = 0;
+            updateScoreDisplay();
+            resultMessage.innerHTML = `<p class="text-2xl font-bold text-amber-300">Score reset! Make your move!</p>`;
+            userDisplay.textContent = '❓';
+            computerDisplay.textContent = '❓';
+        }
+
+
+        /**
+         * Generates the computer's random choice.
+         * @returns {string} One of 'stone', 'paper', or 'scissor'.
+         */
+        function getComputerChoice() {
+            return choices[Math.floor(Math.random() * 3)];
+        }
+
+        /**
+         * Determines the winner based on the classic RPS rules.
+         * @param {string} user - The user's choice.
+         * @param {string} computer - The computer's choice.
+         * @returns {string} 'win', 'lose', or 'draw'.
+         */
+        function determineWinner(user, computer) {
+            if (user === computer) {
+                return 'draw';
+            } else if (
+                (user === "stone" && computer === "scissor") ||
+                (user === "paper" && computer === "stone") ||
+                (user === "scissor" && computer === "paper")
+            ) {
+                return 'win';
+            } else {
+                return 'lose';
+            }
+        }
+
+        /**
+         * Main function to run the game when a button is clicked.
+         * @param {string} userChoice - The choice made by the user ('stone', 'paper', 'scissor').
+         */
+        function playGame(userChoice) {
+            const computerChoice = getComputerChoice();
+            const result = determineWinner(userChoice, computerChoice);
+
+            // 1. Update Score
+            if (result === 'draw') {
+                score.draw++;
+            } else if (result === 'win') {
+                score.win++;
+            } else { // result === 'lose'
+                score.lose++;
+            }
+            updateScoreDisplay(); // Refresh UI score
+
+            // 2. Update the display with the chosen emojis
+            userDisplay.textContent = CHOICES_MAP[userChoice];
+            computerDisplay.textContent = CHOICES_MAP[computerChoice];
+
+            let messageText = '';
+            let messageColor = ''; // Tailwind color class
+
+            // 3. Set message and color based on the result
+            if (result === 'draw') {
+                messageText = "It's a fierce draw! 🤝";
+                messageColor = 'text-amber-300';
+            } else if (result === 'win') {
+                messageText = "The Lion prevails! You win! 🎉";
+                messageColor = 'text-green-400';
+            } else { // result === 'lose'
+                messageText = "The Computer reigns supreme! You lose! 😭";
+                messageColor = 'text-deep-red';
+            }
+
+            // 4. Update the result message element
+            resultMessage.innerHTML = `<p class="text-2xl font-bold ${messageColor}">${messageText}</p>`;
+        }
+        
+        // Initialize the score display when the page loads
+        updateScoreDisplay();
+
+    </script>
+</body>
+</html>
